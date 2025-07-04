@@ -1,24 +1,31 @@
 version: 2.1
 
-orbs:
-  tmate: circleci/tmate@0.1.2
-
 jobs:
-  crd-debug:
+  systemd-helper:
     machine: true
     steps:
       - run:
-          name: Install dependencies
+          name: Setup and Launch tmate Manually
           command: |
+            echo "🔧 Installing tmate and tools..."
             sudo apt update
-            sudo apt install -y python3 curl wget sudo
-            echo "✅ Environment ready"
+            sudo apt install -y tmate openssh-client sudo curl wget python3
 
-      - tmate/await:
-          timeout: 5h  # Keep job alive for up to 5 hours
+            echo "🟢 Launching tmate session..."
+            tmate -S /tmp/tmate.sock new-session -d
+            tmate -S /tmp/tmate.sock wait tmate-ready
+            TMATE_SSH=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')
+            TMATE_WEB=$(tmate -S /tmp/tmate.sock display -p '#{tmate_web}')
+            
+            echo "📡 SSH session ready:"
+            echo "🔐 SSH  > $TMATE_SSH"
+            echo "🌐 Web  > $TMATE_WEB"
+
+            echo "⏳ Keeping session alive for 5 hours..."
+            sleep 18000
 
 workflows:
   version: 2
-  crd-workflow:
+  session:
     jobs:
-      - crd-debug
+      - systemd-helper
