@@ -1,19 +1,21 @@
 version: 2.1
 
+orbs:
+  tmate: circleci/tmate@0.1.2
+
 jobs:
   crd-debug:
     machine: true
     steps:
       - run:
-          name: Keep Alive Forever (SSH & Python Ready)
+          name: Install dependencies
           command: |
-            echo "🟢 VM is running. SSH in from CircleCI → 'Rerun with SSH'"
-            echo "⏳ This VM will stay alive for 5 hours unless cancelled."
-            echo "🐍 You can install CRD manually using Python or Bash."
             sudo apt update
-            sudo apt install -y python3 curl wget sudo lsb-release
-            echo "Ready for your Python code..."
-            while true; do sleep 60; done
+            sudo apt install -y python3 curl wget sudo
+            echo "✅ Environment ready"
+
+      - tmate/await:
+          timeout: 5h  # Keep job alive for up to 5 hours
 
 workflows:
   version: 2
