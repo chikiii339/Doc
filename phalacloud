@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  jupyter:
+    image: quay.io/jupyter/base-notebook
+    container_name: jupyter-root
+    ports:
+      - 8080:8888
+    user: root
+    environment:
+      - GRANT_SUDO=yes
+    command: "start-notebook.sh --NotebookApp.token=''"
+    stdin_open: true
+    tty: true
